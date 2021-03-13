@@ -1,3 +1,5 @@
+from kivy.config import Config
+Config.set('input', 'mouse', 'mouse,multitouch_on_demand')
 from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.filechooser import FileChooserIconView
@@ -10,7 +12,7 @@ class HackApp(App):
         self.title = "HackApp"
 
         mainwindow = BoxLayout()
-        popupbutton = Button(text="Choose File")
+        popupbutton = Button(text="Choose the photo to analyse", size_hint=(0.5, 0.5))
         popup = Popup(size_hint=(0.5, 0.5))
         chooser = FileChooserIconView()
 
