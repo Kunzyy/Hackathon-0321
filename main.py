@@ -1,21 +1,25 @@
 from kivy.app import App
-from kivy.uix.gridlayout import GridLayout
-from kivy.uix.label import Label
-from kivy.uix.textinput import TextInput
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.filechooser import FileChooserIconView
+from kivy.uix.popup import Popup
+from kivy.uix.button import Button
 
-print('Hello world !')
+class HackApp(App):
 
-
-class LoginScreen(GridLayout):
-    def __init__(self, **var_args):
-        super(LoginScreen, self).__init__(**var_args)
-
-
-class MyApp(App):
     def build(self):
-        # return a LoginScreen() as a root widget
-        return LoginScreen()
+        self.title = "HackApp"
 
+        mainwindow = BoxLayout()
+        popupbutton = Button(text="Choose File")
+        popup = Popup(size_hint=(0.5, 0.5))
+        chooser = FileChooserIconView()
+
+        popupbutton.bind(on_press=popup.open)
+
+        popup.add_widget(chooser)
+        mainwindow.add_widget(popupbutton)
+
+        return mainwindow
 
 if __name__ == '__main__':
-    MyApp().run()
+    HackApp().run()
