@@ -1,5 +1,9 @@
-from kivy.config import Config
+import os
+import numpy as np
+from tensorflow.keras.models import load_model
+from tensorflow.keras.preprocessing import image
 
+from kivy.config import Config
 Config.set('input', 'mouse', 'mouse,multitouch_on_demand')
 from kivy.app import App
 from kivy.core.window import Window
@@ -10,28 +14,6 @@ from kivy.uix.image import Image
 from kivy.uix.button import Button
 from kivy.uix.label import Label
 
-import os
-import math
-import tensorflow
-import numpy as np
-import imghdr
-import matplotlib.pyplot as plt
-from random import randint
-from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
-from tensorflow.keras.preprocessing import image
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Flatten
-from tensorflow.keras.layers import Dense
-from tensorflow.keras.layers import Conv2D
-from tensorflow.keras.layers import Dropout
-from tensorflow.keras.layers import MaxPooling2D
-from tensorflow.keras.callbacks import TensorBoard
-from tensorflow.keras.models import load_model
-from tensorflow.keras.optimizers import Adam
-from tensorflow.keras.applications.xception import preprocess_input
-from tensorflow.keras.callbacks import ModelCheckpoint
-from tensorflow.keras.preprocessing import image
-from tensorflow.keras.utils import *
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -40,22 +22,28 @@ color_text = (0, 0, 0, 1)
 color_button = (0.75, 0.75, 0.75, 1)
 
 
-def predict(path):
+def predict(imgPath):
     classes_path = "./classe.txt"
     with open(classes_path, 'r') as f:
         classes = f.readlines()
         classes = list(map(lambda x: x.strip(), classes))
-    num_classes = len(classes)
 
-    #model = create_model()
-
-    #model.compile(
-    #    loss='binary_crossentropy',
-    #    optimizer=Adam(lr=0.0001),
-    #    metrics=['accuracy'])
+    img1 = image.load_img(imgPath, target_size=(64, 64))
+    img = image.img_to_array(img1)
+    img = img / 255
+    img = np.expand_dims(img, axis=0)
 
     model = load_model("./model_fine_final.h5")
-    model.summary()
+
+    prediction = model.predict(img, batch_size=None, steps=1)
+
+    pourc_pred = max(prediction[0])
+    ind_pred = prediction.argmax()
+
+    # print(f'Classe : {classes[ind_pred]}')
+    # print(f'Pourcentage de précision : {pourc_pred}')
+
+    return classes[ind_pred], pourc_pred
 
 
 class HackApp(App):
@@ -66,9 +54,11 @@ class HackApp(App):
         selected = Image(source=file[0])
         self.imagebox.add_widget(selected)
 
+        class_found, pourc = predict(file[0])
+        self.resultlabel.text = f'Classe : {class_found}\nPourcentage : {pourc}'
+
     def build(self):
         self.title = "HackApp"
-        predict('')
         mainwindow = BoxLayout(orientation="vertical")
         imagelayout = BoxLayout(orientation="vertical")
         resultlayout = BoxLayout()
@@ -82,7 +72,7 @@ class HackApp(App):
         ospath = os.path.abspath(os.getcwd())
         self.chooser = FileChooserIconView(path=ospath)
 
-        resultlabel = Label(text="Stage 3", color=color_text)
+        self.resultlabel = Label(text="", color=color_text)
 
         ledimage = Image(source="led-sunlight-300x230.jpg")
 
@@ -93,7 +83,7 @@ class HackApp(App):
         imagelayout.add_widget(self.imagebox)
         imagelayout.add_widget(popupbutton)
         imagelayout.add_widget(launchbutton)
-        resultlayout.add_widget(resultlabel)
+        resultlayout.add_widget(self.resultlabel)
         resultlayout.add_widget(ledimage)
         mainwindow.add_widget(imagelayout)
         mainwindow.add_widget(resultlayout)
